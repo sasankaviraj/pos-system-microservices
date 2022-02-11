@@ -78,7 +78,7 @@ public class OrderServiceImpl implements OrderService {
             if(null!=productDtos){
                 productDtoList = Arrays.asList(productDtos);
             }
-            CommonDto commonDto = setOrderData(byId, getOrderDetailDtoList(byOrderId), productDtoList, forCustomer);
+            CommonDto commonDto = setOrderData(byId, getOrderDetailDtoList(byOrderId,productDtoList), forCustomer);
 
             return new ResponseEntity<>(commonDto,HttpStatus.OK);
         }catch (Exception exception){
@@ -105,10 +105,9 @@ public class OrderServiceImpl implements OrderService {
                     productDtoList = Arrays.asList(productDtos);
                 }
 
-                CommonDto commonDto = setOrderData(order, getOrderDetailDtoList(byOrderId), productDtoList, customerDto);
+                CommonDto commonDto = setOrderData(order, getOrderDetailDtoList(byOrderId,productDtoList), customerDto);
                 commonDtos.add(commonDto);
             }
-
 
             return new ResponseEntity<>(commonDtos,HttpStatus.OK);
         }catch (Exception exception){
@@ -132,24 +131,29 @@ public class OrderServiceImpl implements OrderService {
         return ids;
     }
 
-    List<OrderDetailDto> getOrderDetailDtoList(List<OrderDetail> orderDetailList){
+    List<OrderDetailDto> getOrderDetailDtoList(List<OrderDetail> orderDetailList,List<ProductDto> productDtoList){
         List<OrderDetailDto> orderDetailDtos = new ArrayList<>();
         for (OrderDetail orderDetail:orderDetailList) {
             OrderDetailDto orderDetailDto = new OrderDetailDto();
             BeanUtils.copyProperties(orderDetail,orderDetailDto);
+            for(ProductDto productDto : productDtoList) {
+                if(orderDetail.getProductId().equals(productDto.getId())){
+                    BeanUtils.copyProperties(productDto,orderDetailDto);
+                    orderDetailDto.setId(orderDetail.getId());
+                }
+            }
             orderDetailDtos.add(orderDetailDto);
         }
         return orderDetailDtos;
     }
 
-    CommonDto setOrderData(Order order,List<OrderDetailDto> orderDetailDtos,List<ProductDto> productDtos,CustomerDto customerDto){
+    CommonDto setOrderData(Order order,List<OrderDetailDto> orderDetailDtos,CustomerDto customerDto){
         OrderDto orderDto = new OrderDto();
         BeanUtils.copyProperties(order,orderDto);
         orderDto.setOrderDetailList(orderDetailDtos);
 
         CommonDto commonDto = new CommonDto();
         commonDto.setOrder(orderDto);
-        commonDto.setProducts(productDtos);
         commonDto.setCustomer(customerDto);
         return commonDto;
     }

@@ -48,7 +48,7 @@ public class OrderController {
         }
     }
 
-    @PostMapping(value = "/findByCustomer/{id}")
+    @GetMapping(value = "/findByCustomer/{id}")
     public ResponseEntity<?> findByCustomer(@PathVariable("id") Long id){
         try {
             return orderService.findOrderByCustomer(id);
