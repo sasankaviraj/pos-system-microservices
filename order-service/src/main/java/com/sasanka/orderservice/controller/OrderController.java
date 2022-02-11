@@ -44,7 +44,7 @@ public class OrderController {
             return orderService.findOrder(id);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

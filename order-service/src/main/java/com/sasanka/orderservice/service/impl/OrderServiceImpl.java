@@ -81,6 +81,7 @@ public class OrderServiceImpl implements OrderService {
             CommonDto commonDto = setOrderData(byId, getOrderDetailDtoList(byOrderId,productDtoList), forCustomer);
 
             return new ResponseEntity<>(commonDto,HttpStatus.OK);
+
         }catch (Exception exception){
             log.error(exception.getMessage());
             return new ResponseEntity<>(Constants.ERROR_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
@@ -110,6 +111,7 @@ public class OrderServiceImpl implements OrderService {
             }
 
             return new ResponseEntity<>(commonDtos,HttpStatus.OK);
+
         }catch (Exception exception){
             log.error(exception.getMessage());
             return new ResponseEntity<>(Constants.ERROR_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
