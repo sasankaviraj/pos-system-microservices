@@ -1,0 +1,16 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: hystrix-service
+  config:
+    import: configserver:http://localhost:8087
+  cloud:
+    config:
+      enabled: true
+      uri: http://localhost:8087
+
+hystrix:
+  dashboard:
+    proxy-stream-allow-list: "*"
