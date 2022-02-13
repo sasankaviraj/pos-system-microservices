@@ -40,7 +40,7 @@ public class CustomerServiceImpl implements CustomerService {
     public ResponseEntity<?> deleteCustomer(Long id) {
         Customer byId = customerRepository.getById(id);
         customerRepository.delete(byId);
-        return new ResponseEntity<>("Deleted",HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override

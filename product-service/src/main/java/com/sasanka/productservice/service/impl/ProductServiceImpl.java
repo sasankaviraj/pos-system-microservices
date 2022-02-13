@@ -38,7 +38,7 @@ public class ProductServiceImpl implements ProductService {
     public ResponseEntity<?> deleteProduct(Long id) {
         Product byId = productRepository.getById(id);
         productRepository.delete(byId);
-        return new ResponseEntity<>("Deleted",HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
 
     }
 

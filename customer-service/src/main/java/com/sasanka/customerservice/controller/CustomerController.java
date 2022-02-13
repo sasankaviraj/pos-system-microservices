@@ -37,7 +37,7 @@ public class CustomerController {
         }
     }
 
-    @PostMapping(value = "/delete/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable("id") Long id){
         try {
             return customerService.deleteCustomer(id);

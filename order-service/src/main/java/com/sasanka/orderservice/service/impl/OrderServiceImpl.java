@@ -122,7 +122,7 @@ public class OrderServiceImpl implements OrderService {
     public ResponseEntity<?> deleteOrder(Long id) {
         Order byId = orderRepository.getById(id);
         orderRepository.delete(byId);
-        return new ResponseEntity<>("Deleted",HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     List<Long> getProductIdList(List<OrderDetail> orderDetailList){
