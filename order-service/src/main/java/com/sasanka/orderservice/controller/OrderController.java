@@ -21,40 +21,60 @@ public class OrderController {
     @PostMapping(value = "/save", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> save(@RequestBody OrderDto orderDto){
         try {
-            return orderService.saveOrder(orderDto);
+            return new ResponseEntity<>(orderService.saveOrder(orderDto),HttpStatus.OK);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PostMapping(value = "/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable("id") Long id){
         try {
-            return orderService.deleteOrder(id);
+            return new ResponseEntity<>(orderService.deleteOrder(id),HttpStatus.OK);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping(value = "/find/{id}")
     public ResponseEntity<?> find(@PathVariable("id") Long id){
         try {
-            return orderService.findOrder(id);
+            return new ResponseEntity<>(orderService.findOrder(id),HttpStatus.OK);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping(value = "/findByCustomer/{id}")
     public ResponseEntity<?> findByCustomer(@PathVariable("id") Long id){
         try {
-            return orderService.findOrderByCustomer(id);
+            return new ResponseEntity<>(orderService.findOrderByCustomer(id),HttpStatus.OK);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/all")
+    public ResponseEntity<?> findAll(){
+        try {
+            return new ResponseEntity<>(orderService.getAllOrders(),HttpStatus.OK);
+        }catch (Exception exception){
+            log.error(exception.getMessage());
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping(value = "/update/{id}")
+    public ResponseEntity<?> updateStatus(@PathVariable("id") Long id){
+        try {
+            return new ResponseEntity<>(orderService.updateStatus(id),HttpStatus.OK);
+        }catch (Exception exception){
+            log.error(exception.getMessage());
+            return new ResponseEntity(Constants.ERROR_UPDATE_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

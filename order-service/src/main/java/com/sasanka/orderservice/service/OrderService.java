@@ -1,15 +1,22 @@
 package com.sasanka.orderservice.service;
 
+import com.sasanka.orderservice.dto.CommonDto;
 import com.sasanka.orderservice.dto.OrderDto;
-import org.springframework.http.ResponseEntity;
+import com.sasanka.orderservice.exception.POSSystemException;
+
+import java.util.List;
 
 public interface OrderService {
 
-    ResponseEntity<?> saveOrder(OrderDto orderDto);
+    OrderDto saveOrder(OrderDto orderDto) throws POSSystemException;
 
-    ResponseEntity<?> findOrder(Long id);
+    CommonDto findOrder(Long id) throws POSSystemException;
 
-    ResponseEntity<?> findOrderByCustomer(Long id);
+    List<CommonDto> findOrderByCustomer(Long id) throws POSSystemException;
 
-    ResponseEntity<?> deleteOrder(Long id);
+    Long deleteOrder(Long id) throws POSSystemException;
+
+    Long updateStatus(Long id) throws POSSystemException;
+
+    List<List<CommonDto>> getAllOrders() throws POSSystemException;
 }

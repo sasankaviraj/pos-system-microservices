@@ -3,6 +3,7 @@ package com.sasanka.orderservice.service.impl;
 import com.sasanka.orderservice.dto.*;
 import com.sasanka.orderservice.entity.Order;
 import com.sasanka.orderservice.entity.OrderDetail;
+import com.sasanka.orderservice.exception.POSSystemException;
 import com.sasanka.orderservice.repository.OrderDetailRepository;
 import com.sasanka.orderservice.repository.OrderRepository;
 import com.sasanka.orderservice.service.OrderService;
@@ -11,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,99 +37,132 @@ public class OrderServiceImpl implements OrderService {
     @Value("${system.product.rest.base.url}")
     private String PRODUCT_BASE_URL;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = POSSystemException.class)
     @Override
-    public ResponseEntity<?> saveOrder(OrderDto orderDto) {
-        Order order = new Order();
-        BeanUtils.copyProperties(orderDto,order);
-        ZonedDateTime dateTime = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
-        order.setDateTime(dateTime);
-        Order saved = orderRepository.save(order);
-        orderDto.setOrderId(saved.getOrderId());
-        List<OrderDetailDto> orderDetails = new ArrayList<>();
+    public OrderDto saveOrder(OrderDto orderDto) throws POSSystemException{
+        try {
+            Order order = new Order();
+            BeanUtils.copyProperties(orderDto,order);
+            ZonedDateTime dateTime = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
+            order.setDateTime(dateTime);
+            Order saved = orderRepository.save(order);
+            orderDto.setOrderId(saved.getOrderId());
+            List<OrderDetailDto> orderDetails = new ArrayList<>();
 
-        for (OrderDetailDto orderDetailDto:orderDto.getOrderDetailList()) {
-            OrderDetail orderDetail = new OrderDetail();
-            BeanUtils.copyProperties(orderDetailDto,orderDetail);
-            orderDetail.setOrderId(saved.getOrderId());
-            OrderDetail savedOrderDetail = orderDetailRepository.save(orderDetail);
-            BeanUtils.copyProperties(savedOrderDetail,orderDetailDto);
-            orderDetails.add(orderDetailDto);
+            for (OrderDetailDto orderDetailDto:orderDto.getOrderDetailList()) {
+                OrderDetail orderDetail = new OrderDetail();
+                BeanUtils.copyProperties(orderDetailDto,orderDetail);
+                orderDetail.setOrderId(saved.getOrderId());
+                OrderDetail savedOrderDetail = orderDetailRepository.save(orderDetail);
+                BeanUtils.copyProperties(savedOrderDetail,orderDetailDto);
+                orderDetails.add(orderDetailDto);
+            }
+
+            orderDto.setOrderDetailList(orderDetails);
+            return orderDto;
+        }catch (Exception exception){
+            log.error(exception.getMessage());
+            throw new POSSystemException(Constants.ERROR_POST_MESSAGE);
         }
-
-        orderDto.setOrderDetailList(orderDetails);
-        return new ResponseEntity<>(orderDto, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<?> findOrder(Long id) {
+    public CommonDto findOrder(Long id) throws POSSystemException {
         try{
             Order byId = orderRepository.getById(id);
             List<OrderDetail> byOrderId = orderDetailRepository.findByOrderId(byId.getOrderId());
-            List<Long> productIdList = getProductIdList(byOrderId);
 
-            ProductDto[] productDtos = restTemplate.postForObject(PRODUCT_BASE_URL.concat("/findAll"), productIdList,
-                    ProductDto[].class);
-            CustomerDto forCustomer = restTemplate.getForObject(CUSTOMER_BASE_URL.concat("/find/") + byId.getCustomerId(),
-                    CustomerDto.class);
+            CustomerDto forCustomer = findCustomer(byId.getCustomerId());
 
-            List<ProductDto> productDtoList = null;
-            if(null!=productDtos){
-                productDtoList = Arrays.asList(productDtos);
-            }
-            CommonDto commonDto = setOrderData(byId, getOrderDetailDtoList(byOrderId,productDtoList), forCustomer);
+            CommonDto commonDto = setOrderData(byId, getOrderDetailDtoList(byOrderId,getProductData(byOrderId)), forCustomer);
 
-            return new ResponseEntity<>(commonDto,HttpStatus.OK);
+            return commonDto;
 
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity<>(Constants.ERROR_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new POSSystemException(Constants.ERROR_GET_MESSAGE);
         }
     }
 
     @Override
-    public ResponseEntity<?> findOrderByCustomer(Long id) {
+    public List<CommonDto> findOrderByCustomer(Long id) throws POSSystemException {
         try {
             List<CommonDto> commonDtos = new ArrayList<>();
-            CustomerDto customerDto = restTemplate.getForObject(CUSTOMER_BASE_URL.concat("/find/") + id,
-                    CustomerDto.class);
+            CustomerDto customerDto = findCustomer(id);
             List<Order> byCustomerId = orderRepository.findByCustomerId(id);
             for (Order order:byCustomerId) {
                 List<OrderDetail> byOrderId = orderDetailRepository.findByOrderId(order.getOrderId());
-                List<Long> productIdList = getProductIdList(byOrderId);
-                ProductDto[] productDtos = restTemplate.postForObject(PRODUCT_BASE_URL.concat("/findAll"), productIdList,
-                        ProductDto[].class);
 
-                List<ProductDto> productDtoList = null;
-                if(null!=productDtos){
-                    productDtoList = Arrays.asList(productDtos);
-                }
-
-                CommonDto commonDto = setOrderData(order, getOrderDetailDtoList(byOrderId,productDtoList), customerDto);
+                CommonDto commonDto = setOrderData(order, getOrderDetailDtoList(byOrderId,getProductData(byOrderId)), customerDto);
                 commonDtos.add(commonDto);
             }
 
-            return new ResponseEntity<>(commonDtos,HttpStatus.OK);
+            return commonDtos;
 
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity<>(Constants.ERROR_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new POSSystemException(Constants.ERROR_GET_MESSAGE);
         }
     }
 
     @Override
-    public ResponseEntity<?> deleteOrder(Long id) {
-        Order byId = orderRepository.getById(id);
-        orderRepository.delete(byId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Long deleteOrder(Long id) throws POSSystemException{
+        try{
+            Order byId = orderRepository.getById(id);
+            orderRepository.delete(byId);
+            return id;
+        }catch (Exception exception){
+            log.error(exception.getMessage());
+            throw new POSSystemException(Constants.ERROR_DELETE_MESSAGE);
+        }
     }
 
-    List<Long> getProductIdList(List<OrderDetail> orderDetailList){
+    @Override
+    public Long updateStatus(Long id) throws POSSystemException {
+        try{
+            Order byId = orderRepository.getById(id);
+            byId.setCompleted(true);
+            return id;
+        }catch (Exception exception){
+            log.error(exception.getMessage());
+            throw new POSSystemException(Constants.ERROR_UPDATE_MESSAGE);
+        }
+    }
+
+    @Override
+    public List<List<CommonDto>> getAllOrders() throws POSSystemException {
+        try {
+            List<List<CommonDto>> list = new ArrayList<>();
+
+            CustomerDto[] customerArray = restTemplate.getForObject(CUSTOMER_BASE_URL.concat("/all"),
+                    CustomerDto[].class);
+
+            if(null!=customerArray){
+                for (CustomerDto customerDto: customerArray) {
+                    List<CommonDto> orderByCustomer = findOrderByCustomer(customerDto.getId());
+                    list.add(orderByCustomer);
+                }
+            }
+            return list;
+
+        }catch (Exception exception){
+            log.error(exception.getMessage());
+            throw new POSSystemException(Constants.ERROR_GET_MESSAGE);
+        }
+    }
+
+    List<ProductDto> getProductData(List<OrderDetail> orderDetailList){
         List<Long> ids = new ArrayList<>();
+        List<ProductDto> productDtoList = null;
         for (OrderDetail orderDetail:orderDetailList) {
             ids.add(orderDetail.getProductId());
         }
-        return ids;
+        ProductDto[] productDtos = restTemplate.postForObject(PRODUCT_BASE_URL.concat("/findAll"), ids,
+                ProductDto[].class);
+        if(null!=productDtos){
+            productDtoList = Arrays.asList(productDtos);
+        }
+        return productDtoList;
     }
 
     List<OrderDetailDto> getOrderDetailDtoList(List<OrderDetail> orderDetailList,List<ProductDto> productDtoList){
@@ -149,11 +181,16 @@ public class OrderServiceImpl implements OrderService {
         return orderDetailDtos;
     }
 
+    CustomerDto findCustomer(Long id){
+        return restTemplate.getForObject(CUSTOMER_BASE_URL.concat("/find/") + id,
+                CustomerDto.class);
+    }
+
     CommonDto setOrderData(Order order,List<OrderDetailDto> orderDetailDtos,CustomerDto customerDto){
         OrderDto orderDto = new OrderDto();
         BeanUtils.copyProperties(order,orderDto);
         orderDto.setOrderDetailList(orderDetailDtos);
-
+        orderDto.setDateTime(order.getDateTime().toLocalDate());
         CommonDto commonDto = new CommonDto();
         commonDto.setOrder(orderDto);
         commonDto.setCustomer(customerDto);

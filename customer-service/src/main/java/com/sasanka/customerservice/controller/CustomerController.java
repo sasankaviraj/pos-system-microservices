@@ -23,7 +23,7 @@ public class CustomerController {
             return customerService.saveCustomer(customerDto);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity("Internal Server Error.",HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(Constants.ERROR_POST_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -33,7 +33,7 @@ public class CustomerController {
             return customerService.updateCustomer(customerDto,id);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity("Internal Server Error.",HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(Constants.ERROR_UPDATE_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -43,7 +43,7 @@ public class CustomerController {
             return customerService.deleteCustomer(id);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity("Internal Server Error.",HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(Constants.ERROR_DELETE_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -53,7 +53,7 @@ public class CustomerController {
             return customerService.getAllCustomers();
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity("Internal Server Error.",HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(Constants.ERROR_GET_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -63,7 +63,7 @@ public class CustomerController {
             return customerService.findById(id);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity("Internal Server Error.",HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(Constants.ERROR_GET_MESSAGE,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
