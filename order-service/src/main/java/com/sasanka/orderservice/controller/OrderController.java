@@ -74,7 +74,7 @@ public class OrderController {
             return new ResponseEntity<>(orderService.updateStatus(id),HttpStatus.OK);
         }catch (Exception exception){
             log.error(exception.getMessage());
-            return new ResponseEntity(Constants.ERROR_UPDATE_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
