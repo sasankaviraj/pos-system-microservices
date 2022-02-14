@@ -13,6 +13,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.AUTO)
 
     private Long orderId;
+    @Column(nullable = false)
     private Long customerId;
     private ZonedDateTime dateTime;
     private Boolean completed = false;

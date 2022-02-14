@@ -10,7 +10,9 @@ public class OrderDetail {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private Long orderId;
+    @Column(nullable = false)
     private Long productId;
+    @Column(nullable = false)
     private Integer quantity;
     @ManyToOne
     @JoinColumn(name = "orderId",nullable = false, insertable = false, updatable = false)
