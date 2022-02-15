@@ -122,6 +122,7 @@ public class OrderServiceImpl implements OrderService {
         try{
             Order byId = orderRepository.getById(id);
             byId.setCompleted(true);
+            orderRepository.save(byId);
             return id;
         }catch (Exception exception){
             log.error(exception.getMessage());
